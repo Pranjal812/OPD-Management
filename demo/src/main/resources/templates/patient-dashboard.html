@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard · Smart OPD Mumbai Central</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f4fafc;
+            color: #1e3a3a;
+            font-size: 15px;
+            line-height: 1.5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(145deg, #006363, #004d4d);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            box-shadow: 4px 0 20px rgba(0, 70, 70, 0.3);
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            text-decoration: none;
+            color: white;
+        }
+
+        .sidebar-brand img {
+            height: 44px;
+            width: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .sidebar-brand-name {
+            font-size: 1.9rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-profile {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .sidebar-profile:hover { background: rgba(255,255,255,0.08); }
+
+        .profile-circle {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            border: 4px solid #b2e6e6;
+            box-shadow: 0 8px 0 #006363;
+            transition: 0.3s;
+        }
+        .sidebar-profile:hover .profile-circle {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 0 #006363;
+        }
+        .profile-circle span {
+            font-size: 42px;
+            font-weight: bold;
+            color: #008b8b;
+        }
+        .sidebar-profile h3 { font-size: 20px; margin-bottom: 5px; font-weight: 600; }
+        .sidebar-profile p { font-size: 13px; opacity: 0.9; }
+
+        .view-profile {
+            font-size: 13px;
+            margin-top: 12px;
+            color: #ffd966;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.2);
+            padding: 6px 16px;
+            border-radius: 30px;
+        }
+        .view-profile:hover { background: #ffd966; color: #004d4d; transform: translateX(5px); }
+
+        .nav-menu { flex: 1; padding: 20px; }
+        .nav-item {
+            padding: 14px 18px;
+            color: white;
+            text-decoration: none;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.15); transform: translateX(5px); }
+
+        .logout-btn {
+            margin: 20px;
+            background: #e74c3c;
+            text-align: center;
+            font-weight: 600;
+            padding: 14px;
+            border-radius: 16px;
+            color: white;
+            cursor: pointer;
+            border: none;
+            width: calc(100% - 40px);
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #f4fafc 0%, #e2f3f3 100%);
+        }
+
+        .top-bar {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 30px;
+            border-bottom: 1px solid rgba(0,130,130,0.15);
+        }
+        .contact-info {
+            color: #008b8b;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #e2f3f3;
+            padding: 8px 18px;
+            border-radius: 40px;
+        }
+
+        /* Profile Modal */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .profile-modal.show { display: flex; }
+        .profile-modal-content {
+            background: white;
+            border-radius: 40px;
+            width: 600px;
+            max-width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 60px rgba(0,70,70,0.4);
+            animation: slideUp 0.4s ease;
+        }
+        .profile-modal-header {
+            background: linear-gradient(135deg, #008b8b, #006666);
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            position: relative;
+            border-radius: 40px 40px 0 0;
+        }
+        .profile-modal-header .close-btn {
+            position: absolute;
+            top: 20px; right: 25px;
+            font-size: 28px;
+            cursor: pointer;
+            color: white;
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .profile-logo-circle {
+            width: 90px; height: 90px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            border: 4px solid #b2e6e6;
+        }
+        .profile-logo-text { font-size: 26px; font-weight: 800; color: #008b8b; }
+
+        .profile-modal-body { padding: 30px; }
+        .profile-section { margin-bottom: 25px; border-bottom: 2px solid #e2f3f3; padding-bottom: 25px; }
+        .profile-section h3 {
+            color: #008b8b;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #e2f3f3;
+            padding: 10px 18px;
+            border-radius: 40px;
+        }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .profile-field .label { color: #5f9f9f; font-size: 12px; text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
+        .full-width { grid-column: span 2; }
+
+        .editable-field input, .editable-field select, .editable-field textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2f3f3;
+            border-radius: 20px;
+            outline: none;
+            background: #f9ffff;
+        }
+        .read-only-field {
+            background: #f0f7f7;
+            padding: 12px 16px;
+            border-radius: 20px;
+            color: #4d7a7a;
+            border: 2px solid #e2f3f3;
+        }
+        .modal-actions { display: flex; gap: 15px; margin-top: 30px; }
+        .save-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #008b8b, #006666);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .cancel-btn {
+            flex: 1;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .success-message, .error-message {
+            padding: 15px 20px;
+            border-radius: 60px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+        }
+        .success-message { background: #2ecc71; color: white; }
+        .error-message { background: #e74c3c; color: white; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .content-padding { padding: 30px 40px; }
+        .page-header h1 { color: #005757; font-size: 2.2rem; font-weight: 700; }
+        .date-sub { color: #5f9f9f; margin-top: 5px; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 30px; }
+        .stats-card {
+            background: white;
+            border-radius: 30px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 15px 30px -10px #00959533;
+            border: 1px solid rgba(0,130,130,0.1);
+        }
+        .stats-card h2 { font-size: 2.5rem; color: #008b8b; }
+
+        /* Dashboard grid — single column for reports now that quick actions removed */
+        .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 25px; margin-bottom: 25px; }
+
+        .card {
+            background: white;
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 15px 30px -10px #00959533;
+            border: 1px solid rgba(0,130,130,0.1);
+        }
+        .card h3 {
+            color: #008b8b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #e2f3f3;
+            padding: 10px 18px;
+            border-radius: 40px;
+        }
+
+        /* Upload area */
+        .upload-trigger {
+            border: 2px dashed #b2e0e0;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 30px;
+            cursor: pointer;
+            color: #5f9f9f;
+            background: #f9ffff;
+            transition: 0.2s;
+        }
+        .upload-trigger:hover { background: #edf9f9; border-color: #008b8b; }
+        .upload-trigger i { font-size: 2rem; color: #008b8b; margin-bottom: 8px; display: block; }
+        .upload-trigger p { font-size: 0.9rem; margin: 0; }
+
+        /* Report list */
+        .report-history { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+        .report-tag {
+            background: #f4fafc;
+            padding: 14px 18px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #d0ecec;
+            transition: 0.2s;
+        }
+        .report-tag:hover { background: #edf9f9; }
+        .report-tag-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+        .report-tag-left i { color: #e74c3c; font-size: 1.4rem; flex-shrink: 0; }
+        .report-name {
+            font-weight: 600;
+            font-size: 0.88rem;
+            color: #1e3a3a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 280px;
+        }
+        .report-size { font-size: 0.75rem; color: #5f9f9f; margin-top: 2px; }
+        .report-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .report-view-btn, .report-delete-btn {
+            border: none;
+            padding: 7px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .report-view-btn { background: #e2f3f3; color: #008b8b; }
+        .report-view-btn:hover { background: #008b8b; color: white; }
+        .report-delete-btn { background: #fde8e8; color: #e74c3c; }
+        .report-delete-btn:hover { background: #e74c3c; color: white; }
+
+        .no-reports { color: #5f9f9f; font-size: 0.9rem; padding: 10px 0; text-align: center; }
+
+        /* Doctors table card */
+        .full-card { width: 100%; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px 12px; color: #5f9f9f; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e2f3f3; }
+        td { padding: 15px 12px; border-bottom: 1px solid #e2f3f3; }
+
+        .book-btn {
+            background: linear-gradient(135deg, #008b8b, #006666);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Booking Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 40px; padding: 35px; width: 450px; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <a th:href="@{/}" class="sidebar-brand">
+        <img th:src="@{/logo.png}" alt="OPD logo">
+        <div class="sidebar-brand-name">OPD</div>
+    </a>
+
+    <div class="sidebar-profile" id="sidebarProfileSection">
+        <div class="profile-circle">
+            <span th:text="${#strings.substring(user.fullName, 0, 1)}">S</span>
+        </div>
+        <h3 id="sidebarName" th:text="${user.fullName}">Shivani</h3>
+        <p id="sidebarEmail" th:text="${user.email}">shivani@gmail.com</p>
+        <div class="view-profile" id="viewProfileBtn">
+            <i class="fas fa-user-circle"></i>
+            <span>View Full Profile</span>
+            <i class="fas fa-arrow-right"></i>
+        </div>
+    </div>
+
+    <div class="nav-menu">
+        <div class="nav-item active" onclick="showSection('dashboard')">
+            <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="showSection('bookings')">
+            <i class="fas fa-calendar-check"></i><span>My Bookings</span>
+        </div>
+        <div class="nav-item" onclick="showSection('records')">
+            <i class="fas fa-notes-medical"></i><span>My Records</span>
+        </div>
+        <div class="nav-item" onclick="showSection('messages')">
+            <i class="fas fa-comment-dots"></i><span>Messages</span>
+        </div>
+    </div>
+
+    <form th:action="@{/auth/logout}" method="get" style="width: 100%;">
+        <button type="submit" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+        </button>
+    </form>
+</aside>
+
+<div class="main-wrapper">
+    <header class="top-bar">
+        <span class="contact-info"><i class="fas fa-phone-alt"></i> +91 8882226660</span>
+        <span class="contact-info"><i class="fas fa-envelope"></i> smartopd@gmail.com</span>
+    </header>
+
+    <div class="content-padding">
+        <div class="page-header">
+            <h1>Patient Dashboard</h1>
+            <p class="date-sub" id="current-date"></p>
+        </div>
+
+        <!-- ===== DASHBOARD SECTION ===== -->
+        <div id="dashboard-section">
+            <div class="stats-row">
+                <div class="stats-card"><h2 id="upcomingCount">0</h2><p>Upcoming Appointments</p></div>
+                <div class="stats-card"><h2 id="totalVisitsCount">0</h2><p>Total Visits</p></div>
+                <div class="stats-card"><h2 id="recordsCount">0</h2><p>Medical Records</p></div>
+                <div class="stats-card"><h2 id="billingCount">0</h2><p>Billing Records</p></div>
+            </div>
+
+            <div class="dashboard-grid">
+
+                <!-- Recent Reports — no Quick Actions -->
+                <section class="card">
+                    <h3><i class="fas fa-file-pdf"></i> Recent Reports</h3>
+                    <div class="upload-trigger" onclick="document.getElementById('pdf-upload').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload PDF Records</p>
+                        <input type="file" id="pdf-upload" hidden accept=".pdf,.jpg,.jpeg,.png" onchange="uploadReport(event)">
+                    </div>
+                    <div class="report-history" id="report-list">
+                        <p class="no-reports">No reports uploaded yet.</p>
+                    </div>
+                </section>
+
+                <!-- Available Doctors -->
+                <section class="card full-card">
+                    <h3><i class="fas fa-user-md"></i> Available Doctors Today</h3>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Specialization</th>
+                                <th>Availability</th>
+                                <th>Live Queue</th>
+                                <th>Action</th>
+                            </tr>
+                            </thead>
+                            <tbody id="doctor-tbody">                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- ===== BOOKINGS SECTION ===== -->
+        <div id="bookings-section" style="display: none;">
+            <div class="card">
+                <h3><i class="fas fa-calendar-alt"></i> My Appointments</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                        <tr><th>Date</th><th>Doctor</th><th>Spec</th><th>Time</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="bookings-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RECORDS SECTION ===== -->
+        <div id="records-section" style="display: none;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                <div class="card">
+                    <h3><i class="fas fa-notes-medical"></i> Medical History</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                            <tr><th>Date</th><th>Doctor</th><th>Diagnosis</th></tr>
+                            </thead>
+                            <tbody id="records-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-file-prescription"></i> Prescriptions</h3>
+                    <div id="prescription-list">
+                        <p class="no-reports">Loading prescriptions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MESSAGES SECTION ===== -->
+        <div id="messages-section" style="display: none;">
+            <div class="card">
+                <h3><i class="fas fa-comments"></i> Messages</h3>
+                <div id="messages-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PROFILE MODAL ===== -->
+<div class="profile-modal" id="profileModal">
+    <div class="profile-modal-content">
+        <div class="profile-modal-header">
+            <span class="close-btn" onclick="closeProfileModal()">&times;</span>
+            <div class="profile-logo-circle">
+                <span class="profile-logo-text">OPD</span>
+            </div>
+            <h2 id="modalHeaderName" th:text="${user.fullName}">Shivani</h2>
+            <p id="modalHeaderEmail" th:text="${user.email}">shivani@gmail.com</p>
+        </div>
+        <div class="profile-modal-body">
+            <div id="successMessage" class="success-message"></div>
+            <div id="errorMessage" class="error-message"></div>
+
+            <div class="profile-section">
+                <h3><i class="fas fa-user-circle"></i> Personal Information</h3>
+                <div class="profile-grid">
+                    <div class="profile-field full-width">
+                        <div class="label">Full Name</div>
+                        <div class="editable-field"><input type="text" id="editFullName" th:value="${user.fullName}"></div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="label">Username</div>
+                        <div class="read-only-field" th:text="${user.username}">shivani123</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="label">Date of Birth</div>
+                        <div class="editable-field"><input type="date" id="editDob" th:value="${user.dateOfBirth}"></div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="label">Age</div>
+                        <div class="editable-field"><input type="number" id="editAge" th:value="${user.age}"></div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="label">Gender</div>
+                        <div class="editable-field">
+                            <select id="editGender">
+                                <option value="MALE" th:selected="${user.gender == 'MALE'}">Male</option>
+                                <option value="FEMALE" th:selected="${user.gender == 'FEMALE'}">Female</option>
+                                <option value="OTHER" th:selected="${user.gender == 'OTHER'}">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3><i class="fas fa-address-card"></i> Contact Information</h3>
+                <div class="profile-grid">
+                    <div class="profile-field">
+                        <div class="label">Phone</div>
+                        <div class="editable-field"><input type="tel" id="editPhone" th:value="${user.contactNumber}"></div>
+                    </div>
+                    <div class="profile-field full-width">
+                        <div class="label">Address</div>
+                        <div class="editable-field"><textarea id="editAddress" rows="3" th:text="${user.address}"></textarea></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeProfileModal()">Cancel</button>
+                <button class="save-btn" onclick="saveProfileChanges()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== BOOKING MODAL ===== -->
+<div class="modal" id="bookingModal">
+    <div class="modal-content">
+        <h3 id="modalDoctorName" style="color:#008b8b; margin-bottom:20px;">Book Appointment</h3>
+        <div id="timeSlots" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:20px;"></div>
+        <button class="book-btn" style="width:100%" onclick="confirmBooking()">Confirm Booking</button>
+        <button class="cancel-btn" style="width:100%; margin-top:10px;" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const currentUser = {
+        id: /*[[${user.id}]]*/ 0,
+        fullName: /*[[${user.fullName}]]*/ "",
+        email: /*[[${user.email}]]*/ "",
+        contactNumber: /*[[${user.contactNumber}]]*/ "",
+        age: /*[[${user.age}]]*/ 0,
+        gender: /*[[${user.gender}]]*/ "",
+        address: /*[[${user.address}]]*/ "",
+        dateOfBirth: /*[[${user.dateOfBirth != null ? #temporals.format(user.dateOfBirth, 'yyyy-MM-dd') : ''}]]*/ ""
+    };
+
+    let doctors = [];
+    const defaultTimeSlots = [
+        "09:00 AM", "09:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM",
+        "03:00 PM", "03:30 PM", "04:00 PM", "04:30 PM", "05:00 PM", "05:30 PM", "06:00 PM", "06:30 PM",
+        "07:00 PM", "07:30 PM", "08:00 PM", "08:30 PM", "09:00 PM", "09:30 PM", "10:00 PM", "10:30 PM"
+    ];
+
+    const generalPhysicianSlots = [
+        "10:00 AM", "10:15 AM", "10:30 AM", "10:45 AM",
+        "11:00 AM", "11:15 AM", "11:30 AM", "11:45 AM",
+        "12:00 PM", "12:15 PM", "12:30 PM",
+        "04:00 PM", "04:15 PM", "04:30 PM", "04:45 PM",
+        "05:00 PM", "05:15 PM", "05:30 PM", "05:45 PM",
+        "06:00 PM", "06:15 PM", "06:30 PM", "06:45 PM",
+        "07:00 PM", "07:15 PM", "07:30 PM", "07:45 PM",
+        "08:00 PM", "08:15 PM", "08:30 PM", "08:45 PM",
+        "09:00 PM", "09:15 PM", "09:30 PM", "09:45 PM",
+        "10:00 PM", "10:15 PM", "10:30 PM", "10:45 PM"
+    ];
+
+    let selectedDoctor = null;
+    let selectedTimeSlot = null;
+    let bookedDoctorIds = []; // IDs of doctors already booked by the patient
+    let patientScheduledTimes = []; // Times already booked by the patient (ISO strings)
+
+    // ===== REPORT STORAGE =====
+    // Now using backend persistence. Removed localStorage logic.
+    let reports = [];
+
+    async function loadReports() {
+        try {
+            reports = await fetchJson('/api/patient/reports');
+            renderReports();
+        } catch (e) {
+            console.error("Failed to load reports", e);
+        }
+    }
+
+    function formatSize(bytes) {
+        if (typeof bytes === 'string') return bytes;
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function renderReports() {
+        const list = document.getElementById('report-list');
+        if (!reports || !reports.length) {
+            list.innerHTML = '<p class="no-reports">No reports uploaded yet.</p>';
+            return;
+        }
+        list.innerHTML = reports.map(r => `
+            <div class="report-tag" id="report-${r.id}">
+                <div class="report-tag-left">
+                    <i class="fas fa-file-medical"></i>
+                    <div>
+                        <div class="report-name">${r.fileName}</div>
+                        <div class="report-size">${r.fileSize || r.filePath}</div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <button class="report-view-btn" onclick="viewReport(${r.id})">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="report-delete-btn" onclick="deleteReport(${r.id})">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function uploadReport(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async function(evt) {
+            try {
+                await fetchJson('/api/patient/reports', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fileName: file.name,
+                        filePath: "C:/uploads/" + file.name,
+                        dataUrl: evt.target.result,
+                        fileType: file.type,
+                        fileSize: formatSize(file.size)
+                    })
+                });
+                await loadReports();
+            } catch (err) {
+                alert("Upload failed: " + err.message);
+            }
+        };
+        reader.readAsDataURL(file);
+        e.target.value = ''; 
+    }
+
+    function viewReport(id) {
+        const report = reports.find(r => r.id === id);
+        if (!report) return;
+
+        const win = window.open();
+        if (report.fileType === 'application/pdf') {
+            win.document.write(`<html><head><title>${report.fileName}</title></head><body style="margin:0"><embed src="${report.dataUrl}" type="application/pdf" width="100%" height="100%" /></body></html>`);
+        } else {
+            win.document.write(`<html><head><title>${report.fileName}</title></head><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${report.dataUrl}" style="max-width:100%;max-height:100vh;" /></body></html>`);
+        }
+        win.document.close();
+    }
+
+    async function deleteReport(id) {
+        if (!confirm('Delete this report?')) return;
+        try {
+            await fetchJson('/api/patient/reports/' + id, { method: 'DELETE' });
+            await loadReports();
+        } catch (err) {
+            alert("Delete failed: " + err.message);
+        }
+    }
+
+    // ===== REST OF FUNCTIONS =====
+
+    async function fetchJson(url, options = {}) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            let message = "Request failed";
+            try { const err = await response.json(); message = err.error || message; } catch (e) {}
+            throw new Error(message);
+        }
+        return response.json();
+    }
+
+    async function init() {
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        await loadReports();
+        await loadDoctors();
+        await loadBookings();
+        await loadMedicalRecords();
+        await loadPrescriptions();
+        await loadMessages();
+
+        document.getElementById('sidebarProfileSection').onclick = openProfileModal;
+        document.getElementById('viewProfileBtn').onclick = function(e) {
+            e.stopPropagation();
+            openProfileModal();
+        };
+    }
+
+    // ... (keep previous functions)
+
+    function openProfileModal() {
+        document.getElementById('modalHeaderName').innerText = currentUser.fullName;
+        document.getElementById('modalHeaderEmail').innerText = currentUser.email;
+        document.getElementById('editFullName').value = currentUser.fullName;
+        document.getElementById('editPhone').value = currentUser.contactNumber;
+        document.getElementById('editAddress').value = currentUser.address;
+        document.getElementById('editAge').value = currentUser.age;
+        document.getElementById('editGender').value = currentUser.gender;
+        document.getElementById('editDob').value = currentUser.dateOfBirth;
+        document.getElementById('profileModal').classList.add('show');
+    }
+
+    function closeProfileModal() { document.getElementById('profileModal').classList.remove('show'); }
+
+    async function saveProfileChanges() {
+        const updatedData = {
+            fullName: document.getElementById('editFullName').value,
+            contactNumber: document.getElementById('editPhone').value,
+            address: document.getElementById('editAddress').value,
+            age: parseInt(document.getElementById('editAge').value),
+            gender: document.getElementById('editGender').value,
+            dateOfBirth: document.getElementById('editDob').value
+        };
+
+        try {
+            await fetchJson('/api/patient/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+
+            currentUser.fullName = updatedData.fullName;
+            currentUser.contactNumber = updatedData.contactNumber;
+            currentUser.address = updatedData.address;
+            currentUser.age = updatedData.age;
+            currentUser.gender = updatedData.gender;
+            currentUser.dateOfBirth = updatedData.dateOfBirth;
+
+            document.getElementById('sidebarName').innerText = updatedData.fullName;
+            document.getElementById('modalHeaderName').innerText = updatedData.fullName;
+
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerText = "Profile updated successfully!";
+            successDiv.style.display = 'block';
+            setTimeout(() => { successDiv.style.display = 'none'; closeProfileModal(); }, 1500);
+        } catch (err) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerText = "Update failed: " + err.message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 3000);
+        }
+    }
+
+    function openBookingModal(id) {
+        selectedDoctor = doctors.find(d => d.id === id);
+        if (!selectedDoctor) { alert("Doctor not found."); return; }
+        
+        selectedTimeSlot = null; // Reset selection
+        
+        document.getElementById('modalDoctorName').innerText = "Book: " + selectedDoctor.name;
+        const bookedSlots = selectedDoctor.bookedSlots || [];
+        
+        document.getElementById('timeSlots').innerHTML = selectedDoctor.timeSlots.map(s => {
+            const isoTime = toLocalDateTimeStringForToday(s);
+            const isDoctorBooked = bookedSlots.includes(isoTime);
+            const isPatientBusy = patientScheduledTimes.includes(isoTime);
+            
+            if (isDoctorBooked) {
+                return `<div style="border:1px solid #eee;padding:10px;border-radius:10px;background:#f5f5f5;color:#ccc;cursor:not-allowed;text-align:center;font-size:0.85rem;">${s}<br/><small>Booked</small></div>`;
+            } else if (isPatientBusy) {
+                return `<div style="border:1px solid #ffebeb;padding:10px;border-radius:10px;background:#fff5f5;color:#e74c3c;cursor:not-allowed;text-align:center;font-size:0.85rem;">${s}<br/><small>Unavailable</small></div>`;
+            } else {
+                return `<div style="border:1px solid #008b8b;padding:10px;cursor:pointer;border-radius:10px;text-align:center;color:#008b8b;transition:0.3s;font-size:0.85rem;" onmouseover="this.style.background='#e2f3f3'" onmouseout="if(selectedTimeSlot!='${s}')this.style.background=''" onclick="selectedTimeSlot='${s}';document.querySelectorAll('#timeSlots div').forEach(d=> {if(!d.innerText.includes('Booked') && !d.innerText.includes('Unavailable')){d.style.background='';d.style.color='#008b8b';}});this.style.background='#008b8b';this.style.color='white'">${s}</div>`;
+            }
+        }).join('');
+        
+        // Adjust modal width for more slots
+        const modalContent = document.querySelector('#bookingModal .modal-content');
+        modalContent.style.width = '700px';
+        document.getElementById('timeSlots').style.gridTemplateColumns = 'repeat(4, 1fr)';
+        
+        document.getElementById('bookingModal').classList.add('show');
+    }
+
+    function closeModal() { document.getElementById('bookingModal').classList.remove('show'); }
+
+    function toLocalDateTimeStringForToday(timeSlot) {
+        const now = new Date();
+        const [time, suffix] = timeSlot.split(' ');
+        let [hours, minutes] = time.split(':').map(Number);
+        if (suffix === 'PM' && hours !== 12) hours += 12;
+        if (suffix === 'AM' && hours === 12) hours = 0;
+        const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
+        const pad = n => String(n).padStart(2, '0');
+        return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+
+    async function confirmBooking() {
+        if (!selectedTimeSlot) return alert("Select a time slot");
+        try {
+            await fetchJson('/api/patient/appointments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    doctorId: selectedDoctor.id,
+                    appointmentDateTime: toLocalDateTimeStringForToday(selectedTimeSlot),
+                    reason: 'General Consultation'
+                })
+            });
+            alert("Booked successfully!");
+            await loadBookings();
+        } catch (e) { alert(e.message); }
+        closeModal();
+    }
+
+    async function cancelBooking(id) {
+        if (!confirm("Are you sure you want to cancel this appointment?")) return;
+        try {
+            await fetchJson('/api/patient/appointments/' + id + '/cancel', { method: 'POST' });
+            alert("Appointment cancelled.");
+            await loadBookings();
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    function showSection(section) {
+        ['dashboard', 'bookings', 'records', 'messages'].forEach(s => {
+            document.getElementById(s + '-section').style.display = s === section ? 'block' : 'none';
+        });
+    }
+
+    async function loadPrescriptions() {
+        try {
+            const list = await fetchJson('/api/patient/prescriptions');
+            const container = document.getElementById('prescription-list');
+            if (!container) return;
+            
+            if (list.length === 0) {
+                container.innerHTML = '<p class="no-reports">No prescriptions issued yet.</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(p => {
+                const meds = JSON.parse(p.medicinesJson);
+                const medsHtml = meds.map(m => `<li>${m.name} (${m.dosage || '-'} for ${m.duration || '-'})</li>`).join('');
+                return `
+                    <div style="background:#fff; border:1px solid #eee; border-radius:12px; padding:15px; margin-bottom:15px; border-left:4px solid #008b8b;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong style="color:#008b8b;">${p.doctorName}</strong>
+                            <span style="font-size:0.8rem; color:#999;">${new Date(p.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p style="margin-bottom:10px;"><strong>Diagnosis:</strong> ${p.diagnosis}</p>
+                        <div style="font-size:0.9rem; background:#f9fcfc; padding:10px; border-radius:8px;">
+                            <ul style="margin:0; padding-left:20px;">${medsHtml}</ul>
+                        </div>
+                        ${p.advice ? `<p style="margin-top:10px; font-style:italic; font-size:0.85rem;">Notes: ${p.advice}</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+        } catch (e) { console.error("Failed to load prescriptions", e); }
+    }
+
+    async function loadBookings() {
+        try {
+            const bookings = await fetchJson('/api/patient/appointments');
+            const scheduledBookings = bookings.filter(b => b.status === 'SCHEDULED');
+            
+            // Track which doctors are booked and at what times
+            bookedDoctorIds = scheduledBookings.map(b => {
+                // Find doctor by name in our local list to get ID (since API might only return name)
+                const doc = doctors.find(d => d.name === b.doctorName);
+                return doc ? doc.id : null;
+            }).filter(id => id !== null);
+
+            patientScheduledTimes = scheduledBookings.map(b => b.appointmentDateTime);
+            
+            document.getElementById('upcomingCount').innerText = scheduledBookings.length;
+            document.getElementById('totalVisitsCount').innerText = bookings.length;
+            
+            renderDoctors();
+            
+            document.getElementById('bookings-tbody').innerHTML = bookings.length
+                ? bookings.map(b => `
+                    <tr>
+                      <td>${new Date(b.appointmentDateTime).toLocaleDateString('en-GB')}</td>
+                      <td>${b.doctorName}</td>
+                      <td>${b.specialization}</td>
+                      <td>${new Date(b.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                      <td>
+                        <span style="display:flex;align-items:center;gap:8px;">
+                          ${b.status}
+                          ${b.status === 'SCHEDULED' 
+                            ? `<button onclick="cancelBooking(${b.id})" style="border:none;background:#fde8e8;color:#e74c3c;padding:2px 8px;border-radius:10px;font-size:11px;cursor:pointer;">Cancel</button>` 
+                            : ''}
+                        </span>
+                      </td>
+                    </tr>
+                `).join('')
+                : "<tr><td colspan='5'>No bookings found.</td></tr>";
+        } catch (e) {
+            document.getElementById('bookings-tbody').innerHTML = `<tr><td colspan='5'>${e.message}</td></tr>`;
+        }
+    }
+
+    function renderDoctors() {
+        const tbody = document.getElementById('doctor-tbody');
+        if (!tbody) return;
+        if (!doctors.length) {
+            tbody.innerHTML = "<tr><td colspan='5'>No doctors available.</td></tr>";
+            return;
+        }
+        
+        tbody.innerHTML = doctors.map(doc => {
+            const isBooked = bookedDoctorIds.includes(doc.id);
+            const isAvailable = doc.isAvailableToday;
+            
+            let buttonHtml = '';
+            let availabilityHtml = '';
+            
+            if (!isAvailable) {
+                availabilityHtml = `<span style="color:#e74c3c;">❌ Unavailable</span>`;
+                buttonHtml = `<button class="book-btn" disabled style="background:#bdc3c7; cursor: not-allowed;">OFF</button>`;
+            } else if (isBooked) {
+                availabilityHtml = `<span style="color:#27ae60;">✅ Available</span>`;
+                buttonHtml = `<button class="book-btn" disabled style="background:#008b8b; opacity: 0.8; cursor: default;">Booked</button>`;
+            } else {
+                availabilityHtml = `<span style="color:#27ae60;">✅ Available</span>`;
+                buttonHtml = `<button class="book-btn" onclick="openBookingModal(${doc.id})">Book</button>`;
+            }
+
+            return `
+                <tr>
+                    <td><strong>${doc.name}</strong></td>
+                    <td>${doc.specialization}</td>
+                    <td>${availabilityHtml}</td>
+                    <td>${doc.waitingCount ?? 0} Waiting</td>
+                    <td>${buttonHtml}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    async function loadDoctors() {
+        try {
+            doctors = await fetchJson('/api/patient/doctors');
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            doctors = doctors.map(d => {
+                let slots = defaultTimeSlots;
+                if (d.specialization === 'General Physician' || d.specialization === 'General Medicine') {
+                    slots = generalPhysicianSlots;
+                }
+                const isUnavailableToday = d.unavailableDates && d.unavailableDates.includes(todayStr);
+                return { ...d, timeSlots: slots, isAvailableToday: !isUnavailableToday };
+            });
+        } catch (e) {
+            const tbody = document.getElementById('doctor-tbody');
+            if (tbody) tbody.innerHTML = `<tr><td colspan="5">${e.message}</td></tr>`;
+        }
+    }
+
+    async function loadMedicalRecords() {
+        try {
+            const records = await fetchJson('/api/patient/history');
+            document.getElementById('recordsCount').innerText = records.length;
+            document.getElementById('records-tbody').innerHTML = records.length
+                ? records.map(r => `
+                    <tr>
+                      <td>${new Date(r.visitDateTime).toLocaleDateString('en-GB')}</td>
+                      <td>${r.doctorName}</td>
+                      <td>${r.diagnosis}</td>
+                    </tr>
+                `).join('')
+                : "<tr><td colspan='3'>No records found.</td></tr>";
+        } catch (e) {
+            document.getElementById('records-tbody').innerHTML = `<tr><td colspan='3'>${e.message}</td></tr>`;
+        }
+    }
+
+    async function loadMessages() {
+        try {
+            const billing = await fetchJson('/api/patient/billing');
+            document.getElementById('billingCount').innerText = billing.length;
+            document.getElementById('messages-list').innerHTML = billing.length
+                ? billing.map(b => `<p><strong>${b.status}</strong> - ${b.description} (Rs. ${b.totalAmount})</p>`).join('')
+                : "<p>No billing updates.</p>";
+        } catch (e) {
+            document.getElementById('messages-list').innerHTML = `<p>${e.message}</p>`;
+        }
+    }
+
+    window.onclick = (e) => {
+        if (e.target == document.getElementById('profileModal')) closeProfileModal();
+        if (e.target == document.getElementById('bookingModal')) closeModal();
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login · Smart OPD Mumbai Central</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f4fafc;
+            color: #1e3a3a;
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: rgba(0, 85, 85, 0.92);
+            backdrop-filter: blur(5px);
+            color: white;
+            padding: 10px 45px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 35, 35, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-img-real {
+            height: 44px;
+            width: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .brand-name {
+            font-size: 1.9rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .contact-info {
+            display: flex;
+            gap: 20px;
+        }
+        .contact-item {
+            text-decoration: none;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 5px 14px;
+            border-radius: 30px;
+            transition: 0.2s;
+        }
+        .contact-item i { font-size: 1rem; }
+        .contact-item:hover { background: #ffd966; color: #004d4d; }
+
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 90px 20px 20px 20px;
+            margin-top: 0;
+            background: url('/bg.jpg') center/cover no-repeat fixed;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 40, 40, 0.55);
+            z-index: 0;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 2;
+            animation: fadeUp 0.9s ease-out forwards;
+        }
+
+        @keyframes fadeUp {
+            0% { opacity:0; transform:translateY(25px); }
+            100% { opacity:1; transform:translateY(0); }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 40px 35px;
+            box-shadow: 0 30px 50px -15px #00959555, 0 0 0 1px rgba(0,130,130,0.1) inset;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            font-size: 2.2rem;
+            color: #005757;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #2f5a5a;
+            font-size: 1rem;
+        }
+
+        .login-header i {
+            color: #008b8b;
+            margin: 0 5px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #004d4d;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group label i {
+            margin-right: 6px;
+            color: #008b8b;
+            width: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid #b2e0e0;
+            border-radius: 60px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.3s;
+            background-color: #fff;
+            box-shadow: 0 4px 8px #a6d6d633;
+        }
+
+        .form-control::placeholder {
+            color: #88baba;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #008b8b;
+            box-shadow: 0 0 0 4px rgba(0, 139, 139, 0.15), 0 8px 16px rgba(0, 100, 100, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-control:focus::placeholder {
+            opacity: 0.5;
+            transform: translateX(10px);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23008b8b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+            background-size: 16px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #008b8b, #006666);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 8px 16px rgba(0,100,100,0.3);
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #006666, #004d4d);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,100,100,0.4);
+        }
+
+        .btn-login i {
+            font-size: 1.1rem;
+        }
+
+        .links {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #2f5a5a;
+            line-height: 1.8;
+        }
+
+        .links a {
+            color: #008b8b;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .links a:hover {
+            color: #006666;
+            text-decoration: underline;
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: #e2f3f3;
+            border-radius: 40px;
+            color: #004d4d !important;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .back-home:hover {
+            background: #c0e6e6;
+            transform: translateX(-5px);
+            text-decoration: none !important;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px 18px;
+            border-radius: 60px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 4px solid #c33;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 12px 18px;
+            border-radius: 60px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            border-left: 4px solid #2e7d32;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        footer {
+            background: #002a2a;
+            color: #bae8e8;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a th:href="@{/}" class="logo-section">
+        <img class="logo-img-real" th:src="@{/logo.png}" alt="OPD logo">
+        <div class="brand-name">OPD</div>
+    </a>
+    <div class="contact-info">
+        <a href="tel:+918882226660" class="contact-item"><i class="fas fa-phone-alt"></i> +91 8882226660</a>
+        <a href="mailto:smartopd@gmail.com" class="contact-item"><i class="fas fa-envelope"></i> smartopd@gmail.com</a>
+    </div>
+</header>
+
+<div class="login-wrapper">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h2><i class="fas fa-sign-in-alt"></i> Welcome Back</h2>
+                <p>Enter your credentials to access your dashboard</p>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div th:if="${error}" class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+            <div th:if="${success}" class="success-message">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${success}"></span>
+            </div>
+
+            <form th:action="@{/auth/login}" method="post">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Username / Email</label>
+                    <input type="text" id="email" name="email" class="form-control" placeholder="Enter your email or username" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-user-tag"></i> User Role</label>
+                    <select id="role" name="role" class="form-control" required>
+                        <option value="" disabled selected>-- Select your role --</option>
+                        <option value="PATIENT">Patient</option>
+                        <option value="DOCTOR">Doctor</option>
+                        <option value="STAFF">Admin/Staff</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Login Securely
+                </button>
+            </form>
+
+            <div class="links">
+                <i class="fas fa-question-circle"></i> Don't have an account?
+                <a th:href="@{/auth/signup}">Create Account <i class="fas fa-arrow-right"></i></a><br>
+                <a th:href="@{/}" class="back-home">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p><i class="far fa-copyright"></i> Smart OPD — Mumbai Central · Grant Road East, Mumbai 400008  |  📞 +91 8882226660  |  ✉️ smartopd@gamil.com</p>
+</footer>
+
+</body>
+</html>
